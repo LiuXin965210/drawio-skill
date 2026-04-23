@@ -15,6 +15,7 @@
 - **Auto-launch** draw.io desktop after export for manual fine-tuning
 - Triggers automatically when diagrams would help explain complex systems
 - **Style presets (v1.3 new)** — teach the skill your visual style from a `.drawio` file or image, save it by name, and apply it to future diagrams. See `## Style Presets` in SKILL.md.
+- **Custom output directory (v1.4 new)** — ask for any output path (e.g. `./artifacts/`, `docs/images/`) and the skill will `mkdir -p` and export there; ideal for CI/CD artifact pipelines.
 
 ## Multi-Platform Support
 

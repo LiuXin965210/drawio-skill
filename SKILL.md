@@ -58,6 +58,7 @@ Install draw.io desktop if missing:
 Before starting the workflow, assess whether the user's request is specific enough. If key details are missing, ask 1-3 focused questions:
 - **Diagram type** — which preset? (ERD, UML, Sequence, Architecture, ML/DL, Flowchart, or general)
 - **Output format** — PNG (default), SVG, PDF, or JPG?
+- **Output location** — default is the user's working dir; honor any explicit path the user gives (e.g. "put it in `./artifacts/`"). Don't ask if they didn't mention one.
 - **Scope/fidelity** — how many components? Any specific technologies or labels?
 
 Skip clarification if the request already specifies these details or is clearly simple (e.g., "draw a flowchart of X").
@@ -82,7 +83,7 @@ When a preset loads successfully, mention it in the first line of the reply: *"U
 
 1. **Check deps** — verify `draw.io --version` succeeds; note platform for correct CLI path
 2. **Plan** — identify shapes, relationships, layout (LR or TB), group by tier/layer
-3. **Generate** — write `.drawio` XML file to disk (output dir same as user's working dir)
+3. **Generate** — write `.drawio` XML file to disk. Default output dir is the user's working dir; if the user specified an output path or directory (e.g. `./artifacts/`, `docs/images/`), use that instead — `mkdir -p` the target dir first. Apply the same dir choice to PNG/SVG/PDF exports in steps 4 and 7.
 4. **Export draft** — run CLI to produce PNG for preview
 5. **Self-check** — use the agent's built-in vision capability to read the exported PNG, catch obvious issues, auto-fix before showing user (requires a vision-enabled model such as Claude Sonnet/Opus)
 6. **Review loop** — show image to user, collect feedback, apply targeted XML edits, re-export, repeat until approved

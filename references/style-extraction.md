@@ -108,3 +108,61 @@ The edge style is built as:
 ### If sample render fails (draw.io CLI missing / export error)
 
 Still show the summary table and the provenance line. Note: *"Could not render sample PNG (CLI unavailable). Save anyway on your OK."* Do not block.
+
+## XML extraction path
+
+Input: a `.drawio` file path. Output: candidate preset JSON. Deterministic, no LLM inference.
+
+### Steps
+
+1. **Parse the file.** Read the XML, collect every `<mxCell>` with a `style=` attribute, split into vertices (`vertex="1"`) and edges (`edge="1"`).
+2. **Tokenize each `style=` string** on `;`. Each element is either `key=value` or a bare keyword (e.g., `rhombus`, `ellipse`, `rounded=1`).
+3. **Extract palette.** For every vertex, take the `(fillColor, strokeColor)` pair (skip vertices with neither). Count frequency. Keep the top ≤7 pairs.
+4. **Extract shape vocabulary + role mapping.** For each vertex determine a shape class by precedence:
+   `cylinder3 > ellipse > rhombus > swimlane > rounded=1 > rounded=0`.
+   Then infer the semantic role:
+   - `cylinder3` → `database`
+   - `rhombus` → `decision`
+   - `swimlane` → `container`
+   - `dashed=1` present + grey-family fill → `external`
+   - label matches `/queue|bus|kafka|rabbit/i` → `queue`
+   - label matches `/gateway|api|lb|load/i` → `gateway`
+   - label matches `/auth|login|jwt|oauth/i` → `security`
+   - label matches `/error|fail|alert/i` → `error`
+   - everything else → `service`
+
+   For each **role that has a canonical palette slot** — `service`, `database`, `queue`, `gateway`, `error`, `external`, `security` — the most frequent `(role, color-pair)` mapping wins. The pair goes into the role's canonical palette slot:
+   `service→primary, database→success, queue→warning, gateway→accent, error→danger, external→neutral, security→secondary`.
+   Set `roles[role]` to that slot name.
+
+   **Decision and container shapes do not get a `roles[...]` entry** — they are recorded only in `shapes.decision` and `shapes.container`. Any color pairs observed on decision/container vertices still participate in the palette (they can fill leftover slots) but are not tied to a semantic role.
+
+   Leftover color pairs (not claimed by any role-slot mapping) fill remaining empty palette slots in descending-frequency order.
+
+   Record the shape class string used per role in `shapes[role]` (e.g., `shapes.database = "shape=cylinder3"`). This applies to all nine shape roles: `service`, `database`, `queue`, `decision`, `external`, `container`, plus `gateway`, `error`, `security` where their modal shape differs from `service`.
+
+5. **Extract fonts.** Modal `fontFamily`, `fontSize`, `fontStyle` across vertices.
+   If a distinguishable subset uses a larger size + `fontStyle=1` (bold), treat that as titles: set `titleFontSize` and `titleBold: true`.
+
+6. **Extract edge defaults.** Take the modal edge style string, but strip these per-edge coordinate keys before counting: `entryX`, `entryY`, `exitX`, `exitY`, `entryDx`, `entryDy`, `exitDx`, `exitDy`. Record arrow style from `endArrow`/`endFill` separately in `edges.arrow`.
+   If any edges have `dashed=1`, collect their `value` (label) attributes. If ≥2 share a common token (e.g., all are labeled "async" or "optional"), add that token to `edges.dashedFor`.
+
+7. **Extract extras.** `sketch=1` seen on any vertex or edge → `extras.sketch = true`. Modal `strokeWidth` across vertices → `extras.globalStrokeWidth` (default `1`).
+
+8. **Set provenance.**
+   ```json
+   {
+     "source": { "type": "xml", "path": "<input absolute path>", "extracted_at": "YYYY-MM-DD" },
+     "confidence": "high"
+   }
+   ```
+
+### XML edge cases
+
+| Situation | Behavior |
+|---|---|
+| Source has <3 distinct color pairs | Leave unfilled slots as `null`. Downgrade `confidence` to `"medium"`. Summary warns the user. |
+| Source has >7 color pairs | Keep the top 7 by frequency. Summary warns that some colors were dropped. |
+| Non-standard `shape=` keywords (e.g., `shape=mxgraph.aws4.*`) | Record the literal string under the closest role. Note in summary. |
+| Non-English labels | The English-keyword regexes in step 4 will mostly miss; most vertices collapse to `service`. Palette/shapes/font/edges still captured correctly (they don't depend on label text). `confidence` stays `"high"`. Summary notes: *"Role labels not in English — `service`/`database`/`decision`/`container`/`external` inferred from shape class; other roles not mapped."* |
+| File has no `<mxCell vertex="1">` at all | Stop. Refuse to save. Message: *"Nothing to learn from — source file has no shapes."* |

@@ -69,6 +69,17 @@ Skip clarification if the request already specifies these details or is clearly 
    ```
 
    If the pull fails (offline, conflict, not a git checkout, etc.), ignore the error and continue normally. Do not mention the update to the user unless they ask.
+
+**Step 0.5 — Resolve active preset.** Determine which (if any) user-defined style preset applies to this generation.
+
+- Scan the user's message for a named preset reference: "use my `<name>` style", "with `<name>`", "in `<name>` mode". If found → active preset = `<name>`.
+- Else, check `~/.drawio-skill/styles/` for any file with `"default": true`. If found → active preset = that one.
+- Else → no preset active; fall through to the built-in color/shape/edge conventions for the rest of the workflow.
+
+Load the preset JSON from `~/.drawio-skill/styles/<name>.json`, falling back to `<skill-dir>/styles/built-in/<name>.json`. If the named preset exists in neither location, tell the user the name is unknown, list the available presets (user dir + built-in), and stop — do **not** silently fall back to defaults.
+
+When a preset loads successfully, mention it in the first line of the reply: *"Using preset `<name>` (confidence: `<level>`)."* See the **Applying a preset** subsection below for how the preset changes color/shape/edge/font decisions.
+
 1. **Check deps** — verify `draw.io --version` succeeds; note platform for correct CLI path
 2. **Plan** — identify shapes, relationships, layout (LR or TB), group by tier/layer
 3. **Generate** — write `.drawio` XML file to disk (output dir same as user's working dir)

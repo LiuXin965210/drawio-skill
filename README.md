@@ -28,17 +28,22 @@ A skill that turns natural-language descriptions into `.drawio` XML and exports 
 - **Grid-aligned layout** — complexity-scaled spacing, routing corridors, hub-center strategy
 - **Multi-agent, zero-config** — pure SKILL.md; no MCP server, no Python, no Node.js
 
-## 🖼️ Example
+## 🖼️ Examples
 
-> **Prompt:** *Create a microservices e-commerce architecture with Mobile/Web/Admin clients, API Gateway, Auth/User/Order/Product/Payment services, Kafka message queue, Notification service, and User DB / Order DB / Product DB / Redis Cache / Stripe API.*
+> [!TIP]
+> **Try this prompt** to generate the diagram below:
+
+```
+Create a microservices e-commerce architecture with Mobile/Web/Admin clients,
+API Gateway, Auth/User/Order/Product/Payment services, Kafka message queue,
+Notification service, and User DB / Order DB / Product DB / Redis Cache / Stripe API
+```
 
 <p align="center">
   <img src="assets/microservices-example.png" width="800" alt="Microservices Architecture">
 </p>
 
-### Topology gallery
-
-The skill routes edges cleanly across different topologies — no lines crossing through shapes.
+The skill also routes edges cleanly across different topologies — no lines crossing through shapes:
 
 <table>
   <tr>

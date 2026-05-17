@@ -30,15 +30,20 @@
 
 ## 🖼️ 示例
 
-> **提示词：** *画一个微服务电商架构图，包含 Mobile/Web/Admin 客户端，API Gateway（含认证+限流+路由），Auth/User/Order/Product/Payment 微服务，Kafka 消息队列，Notification 服务，以及 User DB / Order DB / Product DB / Redis Cache / Stripe API。*
+> [!TIP]
+> **试试这条提示词**，生成下图：
+
+```
+画一个微服务电商架构图，包含 Mobile/Web/Admin 客户端，API Gateway（含认证+限流+路由），
+Auth/User/Order/Product/Payment 微服务，Kafka 消息队列，Notification 服务，
+以及 User DB / Order DB / Product DB / Redis Cache / Stripe API
+```
 
 <p align="center">
   <img src="assets/microservices-example.png" width="800" alt="微服务架构图">
 </p>
 
-### 拓扑示例画廊
-
-Skill 支持多种图表拓扑，线条路由清晰 —— 不会穿越无关的形状。
+Skill 还支持多种图表拓扑，线条路由清晰 —— 不会穿越无关的形状：
 
 <table>
   <tr>
